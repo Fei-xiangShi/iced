@@ -4,10 +4,15 @@ use crate::core::{mouse, theme, window};
 use crate::graphics::Viewport;
 use crate::program::{self, Program};
 
-use winit::event::{Touch, WindowEvent};
-use winit::window::Window;
+use winit::event::WindowEvent;
 
 use std::fmt::{Debug, Formatter};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SurfaceLifecycle {
+    Active,
+    Suspended,
+}
 
 /// The state of the window of a [`Program`].
 pub struct State<P: Program>
@@ -15,6 +20,8 @@ where
     P::Theme: theme::Base,
 {
     title: String,
+    mode: window::Mode,
+    surface_lifecycle: SurfaceLifecycle,
     scale_factor: f32,
     viewport: Viewport,
     surface_version: u64,
@@ -49,8 +56,9 @@ where
     pub fn new(
         program: &program::Instance<P>,
         window_id: window::Id,
-        window: &Window,
+        window: &dyn winit::window::Window,
         system_theme: theme::Mode,
+        mode: window::Mode,
     ) -> Self {
         let title = program.title(window_id);
         let scale_factor = program.scale_factor(window_id);
@@ -60,7 +68,7 @@ where
         let style = program.style(theme.as_ref().unwrap_or(&default_theme));
 
         let viewport = {
-            let physical_size = window.inner_size();
+            let physical_size = window.surface_size();
 
             Viewport::with_physical_size(
                 Size::new(physical_size.width, physical_size.height),
@@ -70,6 +78,8 @@ where
 
         Self {
             title,
+            mode,
+            surface_lifecycle: SurfaceLifecycle::Active,
             scale_factor,
             viewport,
             surface_version: 0,
@@ -96,6 +106,22 @@ where
 
     pub fn logical_size(&self) -> Size<f32> {
         self.viewport.logical_size()
+    }
+
+    pub fn mode(&self) -> window::Mode {
+        self.mode
+    }
+
+    pub fn surface_lifecycle(&self) -> SurfaceLifecycle {
+        self.surface_lifecycle
+    }
+
+    pub fn set_surface_lifecycle(&mut self, surface_lifecycle: SurfaceLifecycle) {
+        self.surface_lifecycle = surface_lifecycle;
+    }
+
+    pub fn set_mode(&mut self, mode: window::Mode) {
+        self.mode = mode;
     }
 
     pub fn scale_factor(&self) -> f32 {
@@ -131,9 +157,14 @@ where
         self.style.text_color
     }
 
-    pub fn update(&mut self, program: &program::Instance<P>, window: &Window, event: &WindowEvent) {
+    pub fn update(
+        &mut self,
+        program: &program::Instance<P>,
+        window: &dyn winit::window::Window,
+        event: &WindowEvent,
+    ) {
         match event {
-            WindowEvent::Resized(new_size) => {
+            WindowEvent::SurfaceResized(new_size) => {
                 let size = Size::new(new_size.width, new_size.height);
 
                 self.viewport = Viewport::with_physical_size(
@@ -154,13 +185,10 @@ where
                 );
                 self.surface_version += 1;
             }
-            WindowEvent::CursorMoved { position, .. }
-            | WindowEvent::Touch(Touch {
-                location: position, ..
-            }) => {
+            WindowEvent::PointerMoved { position, .. } => {
                 self.cursor_position = Some(*position);
             }
-            WindowEvent::CursorLeft { .. } => {
+            WindowEvent::PointerLeft { .. } => {
                 self.cursor_position = None;
             }
             WindowEvent::ModifiersChanged(new_modifiers) => {
@@ -183,7 +211,7 @@ where
         &mut self,
         program: &program::Instance<P>,
         window_id: window::Id,
-        window: &Window,
+        window: &dyn winit::window::Window,
     ) {
         // Update window title
         let new_title = program.title(window_id);

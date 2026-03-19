@@ -30,6 +30,9 @@ pub enum Event {
     /// A window was resized.
     Resized(Size),
 
+    /// A window finished showing and is ready to render.
+    Shown,
+
     /// A window changed its scale factor.
     Rescaled(f32),
 

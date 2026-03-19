@@ -56,7 +56,7 @@ pub enum Action {
     /// Get if the current window is minimized or not.
     ///
     /// ## Platform-specific
-    /// - **Wayland:** Always `None`.
+    /// - **Wayland:** Returns backend-dependent local state when available.
     GetMinimized(Id, oneshot::Sender<Option<bool>>),
 
     /// Set the window to minimized or back
@@ -249,6 +249,17 @@ pub fn resize_events() -> Subscription<(Id, Size)> {
     event::listen_with(|event, _status, id| {
         if let crate::core::Event::Window(Event::Resized(size)) = event {
             Some((id, size))
+        } else {
+            None
+        }
+    })
+}
+
+/// Subscribes to all [`Event::Shown`] occurrences in the running application.
+pub fn shown_events() -> Subscription<Id> {
+    event::listen_with(|event, _status, id| {
+        if let crate::core::Event::Window(Event::Shown) = event {
+            Some(id)
         } else {
             None
         }

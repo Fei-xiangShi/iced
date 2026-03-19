@@ -237,7 +237,10 @@ wasmtimer = "0.4.2"
 web-sys = "=0.3.85"
 web-time = "1.1"
 wgpu = { version = "28.0", default-features = false, features = ["std", "wgsl"] }
-winit = { git = "https://github.com/iced-rs/winit.git", rev = "05b8ff17a06562f0a10bb46e6eaacbe2a95cb5ed", default-features = false, features = ["rwh_06"] }
+winit = { git = "https://github.com/Fei-xiangShi/winit.git", rev = "e5d0243aad404f276d866ae7151c9aaccec2203a", default-features = false, features = ["rwh_06"] }
+
+[patch.crates-io]
+smithay-client-toolkit = { git = "https://github.com/Fei-xiangShi/client-toolkit.git", rev = "95e830598b86da7104a63dbe81b8c7cdf4f9431f" }
 
 [workspace.lints.rust]
 rust_2018_idioms = { level = "deny", priority = -1 }
