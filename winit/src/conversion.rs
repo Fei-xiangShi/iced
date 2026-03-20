@@ -91,22 +91,20 @@ pub fn window_attributes(
     #[cfg(target_os = "windows")]
     {
         use window::settings::platform;
-        use winit::platform::windows::{CornerPreference, WindowAttributesExtWindows};
+        use winit::platform::windows::{CornerPreference, WindowAttributesWindows};
 
-        attributes = attributes.with_drag_and_drop(settings.platform_specific.drag_and_drop);
-
-        attributes = attributes.with_skip_taskbar(settings.platform_specific.skip_taskbar);
-
-        attributes =
-            attributes.with_undecorated_shadow(settings.platform_specific.undecorated_shadow);
-
-        attributes =
-            attributes.with_corner_preference(match settings.platform_specific.corner_preference {
+        let windows_attributes = WindowAttributesWindows::default()
+            .with_drag_and_drop(settings.platform_specific.drag_and_drop)
+            .with_skip_taskbar(settings.platform_specific.skip_taskbar)
+            .with_undecorated_shadow(settings.platform_specific.undecorated_shadow)
+            .with_corner_preference(match settings.platform_specific.corner_preference {
                 platform::CornerPreference::Default => CornerPreference::Default,
                 platform::CornerPreference::DoNotRound => CornerPreference::DoNotRound,
                 platform::CornerPreference::Round => CornerPreference::Round,
                 platform::CornerPreference::RoundSmall => CornerPreference::RoundSmall,
             });
+
+        attributes = attributes.with_platform_attributes(Box::new(windows_attributes));
     }
 
     #[cfg(target_os = "macos")]
