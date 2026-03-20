@@ -235,7 +235,7 @@ where
         fn macos_handler(
             &mut self,
         ) -> Option<&mut dyn winit::application::macos::ApplicationHandlerExtMacOS> {
-            Some(self)
+            None
         }
     }
 

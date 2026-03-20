@@ -111,12 +111,12 @@ pub fn window_attributes(
 
     #[cfg(target_os = "macos")]
     {
-        use winit::platform::macos::WindowAttributesExtMacOS;
-
-        attributes = attributes
+        let macos_attributes = winit::platform::macos::WindowAttributesMacOS::default()
             .with_title_hidden(settings.platform_specific.title_hidden)
             .with_titlebar_transparent(settings.platform_specific.titlebar_transparent)
             .with_fullsize_content_view(settings.platform_specific.fullsize_content_view);
+
+        attributes = attributes.with_platform_attributes(Box::new(macos_attributes));
     }
 
     #[cfg(target_os = "linux")]
